@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON PARADOX: MASTER EDITION</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="crt-master">
+
+    <div id="hub-room" class="room active">
+        <header>
+            <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
+            <div class="sys-info">CORE_v8.2 // SHADER_READY // NEURAL_LINK_STABLE</div>
+        </header>
+
+        <main class="hub-grid">
+            <div class="col">
+                <div class="monitor blue"><div class="tag">VIRTUAL_ALPHA</div><div class="noise"></div></div>
+                <div class="monitor orange"><div class="tag">VIRTUAL_OMEGA</div><div class="noise"></div></div>
+            </div>
+
+            <div class="col menu-col">
+                <button class="nav-btn blue" onclick="System.boot()">[INITIALIZE RUN]</button>
+                <button class="nav-btn pink" onclick="System.loadScores()">[RANKINGS]</button>
+                <button class="nav-btn orange" onclick="System.showManual()">[MANUAL]</button>
+            </div>
+
+            <div class="col">
+                <div class="board-panel">
+                    <h3>TOP_OPERATORS</h3>
+                    <div id="score-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="void-room" class="room">
+        <div id="game-hud">
+            <div class="hud-item">SCORE: <span id="sync-val">0</span></div>
+            <div class="hud-item"><div id="phase-cooldown-bar"></div><span id="phase-status">READY</span></div>
+        </div>
+        <div id="canvas-stack">
+            <canvas id="canvasA"></canvas>
+            <canvas id="canvasO"></canvas>
+        </div>
+    </div>
+
+    <div id="death-overlay" class="overlay">
+        <div class="death-box">
+            <h1 class="red-glitch">CONNECTION_LOST</h1>
+            <p>DATA_RECOVERED: <span id="final-score">0</span></p>
+            <input type="text" id="runner-name" placeholder="INIT_RUNNER_ID" maxlength="10">
+            <button class="nav-btn pink" onclick="System.submit()">UPLOAD_DATA</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

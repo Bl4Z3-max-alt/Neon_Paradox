@@ -1,0 +1,48 @@
+:root { --blue: #00f0ff; --pink: #ff00ff; --orange: #ff8c00; --bg: #010103; }
+
+body, html { margin: 0; padding: 0; background: var(--bg); color: var(--blue); font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100vh; }
+
+.crt-master::after {
+    content: " "; display: block; position: absolute; inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+    z-index: 1000; background-size: 100% 4px; pointer-events: none; opacity: 0.8;
+}
+
+.room { display: none; height: 100vh; flex-direction: column; padding: 40px; box-sizing: border-box; }
+.room.active { display: flex; animation: fadeIn 0.5s ease; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.glitch-title { font-size: 3.5rem; text-shadow: 0 0 10px var(--blue); margin: 0; font-weight: 900; }
+.sys-info { font-family: 'Share Tech Mono'; color: var(--pink); font-size: 0.9rem; margin-bottom: 30px; letter-spacing: 2px; }
+
+.hub-grid { display: grid; grid-template-columns: 1.5fr 1fr 1.2fr; gap: 40px; }
+
+.monitor { border: 2px solid currentColor; background: #000; padding: 5px; margin-bottom: 20px; box-shadow: 0 0 15px currentColor; }
+.monitor.blue { color: var(--blue); }
+.monitor.orange { color: var(--orange); opacity: 0.3; }
+.noise { height: 150px; background: repeating-linear-gradient(0deg, #0a0a0a, #000 2px); animation: noiseAnim 0.2s infinite; }
+@keyframes noiseAnim { 0% { background-position: 0 0; } 100% { background-position: 0 4px; } }
+
+.nav-btn {
+    background: rgba(255,255,255,0.05); border: 2px solid currentColor; color: white; padding: 20px;
+    font-family: inherit; cursor: pointer; margin-bottom: 25px; transition: 0.3s;
+}
+.nav-btn:hover { background: white; color: black; box-shadow: 0 0 30px white; transform: skewX(-5deg); }
+
+.board-panel { border: 2px solid var(--pink); padding: 20px; background: rgba(0,0,0,0.8); box-shadow: 0 0 20px var(--pink); }
+
+/* GAMEPLAY UI */
+#void-room { padding: 0; justify-content: center; align-items: center; background: #000; }
+#canvas-stack { display: flex; flex-direction: column; border: 4px solid var(--blue); box-shadow: 0 0 60px var(--blue); }
+canvas { display: block; width: 94vw; height: 42vh; }
+#canvasO { display: none; border-top: 2px solid var(--pink); }
+
+#game-hud { position: absolute; top: 20px; width: 90%; display: flex; justify-content: space-between; font-size: 2rem; z-index: 100; font-weight: 900; }
+#phase-cooldown-bar { height: 5px; background: var(--blue); width: 100%; transition: width 0.1s linear; margin-top: 5px; }
+
+.overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+.death-box { border: 2px solid var(--pink); padding: 60px; text-align: center; background: #000; box-shadow: 0 0 50px var(--pink); }
+.red-glitch { color: var(--pink); animation: shake 0.1s infinite; font-size: 3rem; }
+
+@keyframes shake { 0% { transform: translate(3px, 3px); } 100% { transform: translate(-3px, -3px); } }
