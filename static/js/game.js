@@ -1,6 +1,6 @@
 /**
  * NEON PARADOX: MASTER EDITION
- * Updated with lowercase jump.wav and boom.wav
+ * Final Build: Lobby Music, SFX, Particles, and Reality Split
  */
 
 const canvasA = document.getElementById('canvasA');
@@ -8,20 +8,20 @@ const canvasO = document.getElementById('canvasO');
 const ctxA = canvasA.getContext('2d');
 const ctxO = canvasO.getContext('2d');
 
-// --- 1. AUDIO SYSTEM (Now using lowercase filenames) ---
+// --- 1. AUDIO SYSTEM ---
 const sfx = {
     jump: new Audio('/static/audio/jump.wav'),
-    phase: new Audio('/static/audio/jump.wav'), // Reusing jump for phase for now
+    phase: new Audio('/static/audio/jump.wav'), // Re-using jump for phase
     crash: new Audio('/static/audio/boom.wav'), 
-    bgm: new Audio('/static/audio/music.wav')   // Optional
+    lobbyMusic: new Audio('/static/audio/lobby.wav')
 };
 
-// Audio Settings
+// Config Audio
 sfx.jump.volume = 0.3;
 sfx.phase.volume = 0.2;
 sfx.crash.volume = 0.6;
-sfx.bgm.volume = 0.2;
-sfx.bgm.loop = true;
+sfx.lobbyMusic.volume = 0.2;
+sfx.lobbyMusic.loop = true;
 
 // --- 2. ENGINE STATE ---
 let state = {
@@ -30,10 +30,8 @@ let state = {
     speed: 7,
     isSplit: false,
     startTime: 0,
-    pA: null, 
-    pO: null,
-    obsA: [], 
-    obsO: [],
+    pA: null, pO: null,
+    obsA: [], obsO: [],
     particles: []
 };
 
@@ -46,25 +44,21 @@ class Player {
         this.phaseCooldown = 0;
     }
     update(h) {
-        // Physics
         this.v += 0.8 * this.g;
         this.y += this.v;
-
-        // Boundary Collision
         if (this.y > h - this.h) { this.y = h - this.h; this.v = 0; }
         if (this.y < 0) { this.y = 0; this.v = 0; }
         
-        // Cooldown Logic
+        // Phase Cooldown UI logic
         if (this.phaseCooldown > 0) {
             this.phaseCooldown--;
-            if (this.color === '#00f0ff') {
+            if (this.color === '#00f0ff') { // Track UI bar for main player
                 const percent = (1 - (this.phaseCooldown / 180)) * 100;
                 const bar = document.getElementById('phase-cooldown-bar');
                 if(bar) bar.style.width = percent + "%";
             }
         }
-
-        // Spawn Trail Particles
+        // Spawn Particles trail
         if (state.active && Math.floor(state.score) % 2 === 0) {
             System.spawnPart(this.x, this.y + this.h/2, this.color, 1);
         }
@@ -94,34 +88,27 @@ class Player {
 // --- 4. SYSTEM CORE ---
 const System = {
     boot: () => {
-        // UNLOCK AUDIO for browsers
-        [sfx.jump, sfx.phase, sfx.crash, sfx.bgm].forEach(track => {
-            track.play().then(() => {
-                track.pause();
-                track.currentTime = 0;
-            }).catch(() => {});
-        });
-        
-        // Start background music
-        sfx.bgm.play().catch(() => {});
+        // STOP LOBBY MUSIC when the run starts
+        sfx.lobbyMusic.pause();
+        sfx.lobbyMusic.currentTime = 0;
 
-        // Switch Rooms
+        // Unlock Game Sounds
+        [sfx.jump, sfx.phase, sfx.crash].forEach(track => {
+            track.play().then(() => { track.pause(); track.currentTime = 0; }).catch(() => {});
+        });
+
+        // Switch to Gameplay Room
         document.getElementById('hub-room').classList.remove('active');
         document.getElementById('void-room').classList.add('active');
         
-        // Setup Canvas Size
-        canvasA.width = canvasO.width = window.innerWidth * 0.92;
+        // Auto-Resize Canvas
+        canvasA.width = canvasO.width = window.innerWidth * 0.94;
         canvasA.height = canvasO.height = window.innerHeight * 0.42;
 
-        // Reset State
         state.active = true; 
         state.startTime = Date.now();
-        state.score = 0; 
-        state.speed = 7; 
-        state.isSplit = false;
-        state.obsA = []; 
-        state.obsO = []; 
-        state.particles = [];
+        state.score = 0; state.speed = 7; state.isSplit = false;
+        state.obsA = []; state.obsO = []; state.particles = [];
         state.pA = new Player('#00f0ff'); 
         state.pO = new Player('#ff8c00');
         
@@ -142,13 +129,11 @@ const System = {
 
     update: () => {
         if(!state.active) return;
-
-        // Controlled Score Speed
-        state.score += 0.2; 
+        state.score += 0.25; 
         document.getElementById('sync-val').innerText = Math.floor(state.score);
         state.speed += 0.0012;
 
-        // Reality Split (30 seconds)
+        // Reality Split logic (30 sec)
         if(!state.isSplit && Date.now() - state.startTime > 30000) {
             state.isSplit = true;
             canvasO.style.display = 'block';
@@ -159,18 +144,18 @@ const System = {
         if(state.pA.phasing) { 
             barText.innerText = "PHASING"; barText.style.color = "#fff"; 
         } else if(state.pA.phaseCooldown > 0) { 
-            barText.innerText = "RECHARGING"; barText.style.color = "#444"; 
+            barText.innerText = "WAIT"; barText.style.color = "#444"; 
         } else { 
             barText.innerText = "READY"; barText.style.color = "#00f0ff"; 
         }
 
-        // Process Reality A and Reality O
+        // Update Realities
         [ {p: state.pA, obs: state.obsA, ctx: ctxA, id: 'A'},
           {p: state.pO, obs: state.obsO, ctx: ctxO, id: 'O'} ].forEach(cfg => {
             if(cfg.id === 'O' && !state.isSplit) return;
             cfg.p.update(canvasA.height);
 
-            // Obstacle Spawner
+            // Spawn Spikes
             if(Math.random() < 0.025) {
                 cfg.obs.push({
                     x: canvasA.width + 100, y: Math.random() > 0.5 ? 0 : canvasA.height - 70,
@@ -202,6 +187,7 @@ const System = {
         [ctxA, ctxO].forEach((ctx, i) => {
             const id = i === 0 ? 'A' : 'O';
             if(id === 'O' && !state.isSplit) return;
+
             ctx.clearRect(0, 0, canvasA.width, canvasA.height);
 
             // Warp Grid
@@ -211,13 +197,12 @@ const System = {
             for(let x = -xOff; x < canvasA.width; x += 100) ctx.strokeRect(x, 0, 100, canvasA.height);
             ctx.globalAlpha = 1;
 
-            // Draw Particles
+            // Particles
             state.particles.forEach(p => {
                 ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4);
             });
             ctx.globalAlpha = 1;
 
-            // Draw Actors
             if(id === 'A') {
                 state.pA.draw(ctx);
                 state.obsA.forEach(o => { 
@@ -246,13 +231,10 @@ const System = {
 
     die: (x, y) => {
         state.active = false;
-        System.spawnPart(x, y, '#ff0000', 80);
+        System.spawnPart(x, y, '#ff0000', 100);
         System.shake();
-        
-        // CRASH SOUND (boom.wav)
         sfx.crash.currentTime = 0;
         sfx.crash.play();
-        
         setTimeout(() => {
             document.getElementById('death-overlay').style.display = 'flex';
             document.getElementById('final-score').innerText = Math.floor(state.score);
@@ -264,6 +246,8 @@ const System = {
         v.style.animation = 'shake 0.1s 6';
         setTimeout(() => v.style.animation = '', 600);
     },
+
+    showManual: () => alert("SPACE: Jump/Boost\nW & S: Gravity Flip\nSHIFT: Neural Phase (Invincibility)\nSurvive 30s to split your mind!"),
 
     submit: async () => {
         const name = document.getElementById('runner-name').value || "ANON";
@@ -279,14 +263,20 @@ const System = {
         const r = await fetch('/api/leaderboard');
         const data = await r.json();
         document.getElementById('score-list').innerHTML = data.map((s, i) => `
-            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;">
+            <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222; font-family: 'Share Tech Mono';">
                 <span>${i+1}. ${s.name}</span><span>${s.score}</span>
             </div>
         `).join('');
     }
 };
 
-// --- 5. INPUTS ---
+// --- START LOBBY MUSIC ON FIRST INTERACTION ---
+window.addEventListener('mousedown', () => {
+    if (!state.active && sfx.lobbyMusic.paused) {
+        sfx.lobbyMusic.play().catch(() => {});
+    }
+}, { once: false });
+
 window.onkeydown = (e) => {
     if(!state.active) return;
 
@@ -295,11 +285,8 @@ window.onkeydown = (e) => {
         if(state.pA.phaseCooldown <= 0) {
             state.pA.phasing = state.pO.phasing = true;
             state.pA.phaseCooldown = 180;
-            
-            // PHASE SOUND (jump.wav)
             sfx.phase.currentTime = 0;
             sfx.phase.play();
-            
             setTimeout(() => { state.pA.phasing = state.pO.phasing = false; }, 500);
         }
     }
@@ -308,8 +295,6 @@ window.onkeydown = (e) => {
     if(e.code === 'Space') {
         state.pA.v = (state.pA.g === 1) ? -14 : 14;
         if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14;
-        
-        // JUMP SOUND (jump.wav)
         sfx.jump.currentTime = 0;
         sfx.jump.play();
     }
@@ -319,5 +304,4 @@ window.onkeydown = (e) => {
     if(e.code === 'KeyS') { state.pA.g = 1; if(state.isSplit) state.pO.g = 1; }
 };
 
-// Start by loading scores
 System.loadScores();
