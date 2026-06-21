@@ -10,17 +10,18 @@
 </head>
 <body class="crt-master">
 
-    <!-- SPLASH SCREEN (Only once) -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="overlay active">
         <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
-        <p class="sys-info">SYSTEM_v11.0 // ENCRYPTED_CONNECTION</p>
+        <p class="dev-signature">DEVELOPED BY: SRIPARNO MALIK</p>
+        <p class="sys-info">SYSTEM_v13.0 // SECURE_HANDSHAKE</p>
         <button class="nav-btn blue" onclick="System.initTerminal()">[ CONNECT TO MAINFRAME ]</button>
     </div>
 
     <!-- LOADING OVERLAY -->
     <div id="loading-screen" class="overlay">
         <div class="loading-container">
-            <div id="loading-text">LOADING_REALITY...</div>
+            <div id="loading-text">RECALIBRATING_REALITY...</div>
             <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
     </div>
@@ -29,7 +30,7 @@
     <div id="hub-room" class="room">
         <header>
             <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
-            <div class="sys-info">STATUS: CONNECTED // USER: RUNNER_7</div>
+            <div class="sys-info">ARCHITECT: SRIPARNO MALIK // STATUS: CONNECTED</div>
         </header>
 
         <main class="hub-grid">
@@ -62,8 +63,11 @@
     <!-- ROOM 2: THE VOID -->
     <div id="void-room" class="room">
         <div id="game-hud">
-            <div class="hud-item">DATA: <span id="sync-val">0</span></div>
-            <div class="hud-item"><div id="phase-cooldown-bar"></div><span id="phase-status">READY</span></div>
+            <div class="hud-item">SYNC: <span id="sync-val">0</span></div>
+            <div class="hud-item">
+                <div id="phase-cooldown-wrapper"><div id="phase-cooldown-bar"></div></div>
+                <span id="phase-status">READY</span>
+            </div>
         </div>
         <div id="canvas-stack">
             <canvas id="canvasA"></canvas>
@@ -71,10 +75,10 @@
         </div>
     </div>
 
-    <!-- ROOM 3: DEATH SCREEN -->
+    <!-- ROOM 3: DEATH OVERLAY -->
     <div id="death-overlay" class="overlay">
         <div class="death-box">
-            <h1 class="red-glitch">CONNECTION_LOST</h1>
+            <h1 class="red-glitch">NEURAL_DEATH</h1>
             <p>DATA_RECOVERED: <span id="final-score">0</span></p>
             <input type="text" id="runner-name" placeholder="INIT_ID" maxlength="10">
             <button class="nav-btn pink" onclick="System.submit()">UPLOAD_DATA</button>

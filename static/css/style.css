@@ -37,3 +37,22 @@ canvas#canvasA, canvas#canvasO { width: 92vw; height: 42vh; display: block; }
 .death-box { border: 2px solid var(--pink); padding: 50px; text-align: center; background: #000; }
 .red-glitch { color: var(--pink); animation: shake 0.1s infinite; }
 @keyframes shake { 0% { transform: translate(2px, 2px); } 100% { transform: translate(-2px, -2px); } }
+
+/* Add this to your existing style.css */
+.dev-signature {
+    font-family: 'Share Tech Mono', monospace;
+    color: #ffd700; /* Gold color */
+    letter-spacing: 3px;
+    font-size: 1rem;
+    margin-top: 10px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Ensure the header Sys-Info also looks good */
+.sys-info {
+    font-family: 'Share Tech Mono';
+    color: var(--pink);
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+}
