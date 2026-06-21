@@ -1,3 +1,9 @@
+/**
+ * NEON PARADOX: MASTER EDITION (V16.0)
+ * Developer: Sriparno Malik
+ * Fix: Frame-Rate Independent Physics (Delta-Time)
+ */
+
 const canvasA = document.getElementById('canvasA');
 const canvasO = document.getElementById('canvasO');
 const ctxA = canvasA.getContext('2d');
@@ -17,9 +23,11 @@ sfx.lobby.loop = true; sfx.lobby.volume = 0.2;
 
 let state = {
     active: false, score: 0, speed: 7, isSplit: false, startTime: 0,
-    pA: null, pO: null, obsA: [], obsO: [], particles: [], shards: []
+    pA: null, pO: null, obsA: [], obsO: [], particles: [], shards: [],
+    lastTime: 0 // Track time for Delta-Time calculation
 };
 
+// --- SHARD CLASS ---
 class Shard {
     constructor(x, y, color) {
         this.x = x; this.y = y; this.color = color;
@@ -30,29 +38,42 @@ class Shard {
         this.vr = (Math.random() - 0.5) * 0.4;
         this.life = 1.0;
     }
-    update() { this.x += this.vx; this.y += this.vy; this.vy += 0.2; this.angle += this.vr; this.life -= 0.02; }
+    update(dt) { 
+        this.x += this.vx * dt; 
+        this.y += this.vy * dt; 
+        this.vy += 0.2 * dt; 
+        this.angle += this.vr * dt; 
+        this.life -= 0.02 * dt; 
+    }
     draw(ctx) {
         ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
-        ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
+        ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
         ctx.beginPath(); ctx.moveTo(0, -this.size/2); ctx.lineTo(this.size/2, this.size/2); ctx.lineTo(-this.size/2, this.size/2); ctx.fill(); ctx.restore();
     }
 }
 
+// --- PLAYER CLASS ---
 class Player {
     constructor(color) {
         this.w = 35; this.h = 35; this.x = 120; this.y = 150;
         this.v = 0; this.g = 1; this.color = color;
         this.phasing = false; this.phaseCooldown = 0; this.angle = 0;
     }
-    update(h) {
-        this.v += 0.8 * this.g; this.y += this.v;
+    update(h, dt) {
+        this.v += 0.8 * this.g * dt;
+        this.y += this.v * dt;
+
+        // Collision & Rotation Reset
         if (this.y >= h - this.h || this.y <= 0) { 
             this.angle = 0; this.v = 0; 
             this.y = (this.y <= 0) ? 0 : h - this.h;
-        } else { this.angle += (this.g === 1) ? 0.2 : -0.2; }
+        } else { 
+            this.angle += (this.g === 1 ? 0.2 : -0.2) * dt; 
+        }
+
         if (this.phaseCooldown > 0) {
-            this.phaseCooldown--;
-            if (this.color === '#00f0ff') document.getElementById('phase-cooldown-bar').style.width = (1 - (this.phaseCooldown/180))*100 + "%";
+            this.phaseCooldown -= 1 * dt;
+            if (this.color === '#00f0ff') document.getElementById('phase-cooldown-bar').style.width = Math.max(0, (1 - (this.phaseCooldown/180))*100) + "%";
         }
         if (state.active && Math.floor(state.score) % 2 === 0) System.spawnPart(this.x, this.y + this.h/2, this.color, 1);
     }
@@ -89,33 +110,49 @@ const System = {
         }, 60);
     },
     boot: () => {
-        sfx.lobby.pause();
-        document.getElementById('hub-room').classList.remove('active');
-        document.getElementById('void-room').classList.add('active');
-        canvasA.width = canvasO.width = window.innerWidth * 0.95;
-        canvasA.height = canvasO.height = window.innerHeight * 0.42;
+        sfx.lobby.pause(); document.getElementById('hub-room').classList.remove('active'); document.getElementById('void-room').classList.add('active');
+        canvasA.width = canvasO.width = window.innerWidth * 0.95; canvasA.height = canvasO.height = window.innerHeight * 0.42;
         state.active = true; state.startTime = Date.now(); state.score = 0; state.speed = 7; state.isSplit = false;
         state.obsA = []; state.obsO = []; state.particles = []; state.shards = [];
         state.pA = new Player('#00f0ff'); state.pO = new Player('#ff8c00');
-        canvasO.style.display = 'none';
-        System.gameLoop();
+        canvasO.style.display = 'none'; state.lastTime = performance.now();
+        System.gameLoop(performance.now());
     },
-    update: () => {
-        if(!state.active) { state.shards.forEach((s, i) => { s.update(); if(s.life <= 0) state.shards.splice(i, 1); }); return; }
-        state.score += 0.15; state.speed = 7 + (state.score / 200);
+    gameLoop: (currentTime) => { 
+        // --- DELTA TIME CALCULATION ---
+        // Normalizes speed to 60fps standard (dt=1 at 60fps)
+        const dt = (currentTime - state.lastTime) / (1000 / 60);
+        state.lastTime = currentTime;
+
+        System.update(Math.min(dt, 2)); // Cap dt to prevent huge jumps if tab lags
+        System.draw(); 
+        requestAnimationFrame(System.gameLoop); 
+    },
+    update: (dt) => {
+        if(!state.active) { state.shards.forEach((s, i) => { s.update(dt); if(s.life <= 0) state.shards.splice(i, 1); }); return; }
+        
+        // --- FIXED SCORE & SPEED INCREMENT ---
+        state.score += 0.15 * dt; 
+        let rawSpeed = 7 + (state.score / 250);
+        state.speed = Math.min(rawSpeed, 18); // HARD SPEED CAP at 18
+        
         document.getElementById('sync-val').innerText = Math.floor(state.score);
         if(!state.isSplit && Date.now() - state.startTime > 30000) { state.isSplit = true; canvasO.style.display = 'block'; System.shake(); }
+        
         [ {p: state.pA, obs: state.obsA, id: 'A'}, {p: state.pO, obs: state.obsO, id: 'O'} ].forEach(cfg => {
             if(cfg.id === 'O' && !state.isSplit) return;
-            cfg.p.update(canvasA.height);
-            if(Math.random() < 0.02) cfg.obs.push({x: canvasA.width + 100, y: Math.random() > 0.5 ? 0 : canvasA.height - 70, w: 30, h: 70});
+            cfg.p.update(canvasA.height, dt);
+            
+            // Adjust spawn probability by dt
+            if(Math.random() < 0.02 * dt) cfg.obs.push({x: canvasA.width + 100, y: Math.random() > 0.5 ? 0 : canvasA.height - 70, w: 30, h: 70});
+            
             cfg.obs.forEach((o, i) => {
-                o.x -= state.speed;
+                o.x -= state.speed * dt;
                 if(!cfg.p.phasing && cfg.p.x + 8 < o.x + o.w && cfg.p.x + cfg.p.w - 8 > o.x && cfg.p.y + 8 < o.y + o.h && cfg.p.y + cfg.p.h - 8 > o.y) System.die(cfg.p);
                 if(o.x < -150) cfg.obs.splice(i, 1);
             });
         });
-        state.particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; if(p.life <= 0) state.particles.splice(i, 1); });
+        state.particles.forEach((p, i) => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= 0.02 * dt; if(p.life <= 0) state.particles.splice(i, 1); });
     },
     draw: () => {
         [ctxA, ctxO].forEach((ctx, i) => {
@@ -125,7 +162,7 @@ const System = {
             let xOff = (state.score * 10) % 100;
             for(let x = -xOff; x < canvasA.width; x += 100) ctx.strokeRect(x, 0, 100, canvasA.height);
             ctx.globalAlpha = 1;
-            state.particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); });
+            state.particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); });
             state.shards.forEach(s => s.draw(ctx));
             if(state.active) {
                 if(id === 'A') { state.pA.draw(ctx); state.obsA.forEach(o => { ctx.fillStyle = '#ff003c'; ctx.fillRect(o.x, o.y, o.w, o.h); }); }
@@ -138,7 +175,6 @@ const System = {
         for(let i=0; i<15; i++) state.shards.push(new Shard(p.x + p.w/2, p.y + p.h/2, p.color));
         setTimeout(() => { document.getElementById('death-overlay').style.display = 'flex'; document.getElementById('final-score').innerText = Math.floor(state.score); }, 1200);
     },
-    gameLoop: () => { System.update(); System.draw(); requestAnimationFrame(System.gameLoop); },
     submit: async () => {
         const name = document.getElementById('runner-name').value || "ANON";
         await fetch('/api/score', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, score: Math.floor(state.score) }) });
@@ -148,32 +184,19 @@ const System = {
     spawnPart: (x, y, color, count) => { for(let i=0; i<count; i++) state.particles.push({x, y, color, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 1.0}); },
     shake: () => { const v = document.getElementById('void-room'); v.style.animation = 'shake 0.1s 8'; setTimeout(() => v.style.animation = '', 800); },
     loadScores: async () => { const r = await fetch('/api/leaderboard'); const data = await r.json(); document.getElementById('score-list').innerHTML = data.map((s, i) => `<div class="score-row" style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${i+1}. ${s.name}</span><span>${s.score}</span></div>`).join(''); },
-    showManual: () => alert("KEYBOARD: Space (Jump), W/S (Flip), Shift (Phase)\nMOBILE: Left (Flip), Right (Jump), Center (Phase)")
+    showManual: () => alert("PC: Space/W/S/Shift | Mobile: Tap L/R/Center")
 };
 
-// --- INPUT LOGIC (PC + MOBILE) ---
+// --- INPUTS ---
 const Actions = {
     jump: () => { if(!state.active) return; state.pA.v = (state.pA.g === 1) ? -14 : 14; if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14; sfx.jump.currentTime = 0; sfx.jump.play(); },
     flip: (dir) => { if(!state.active) return; state.pA.g = dir; if(state.isSplit) state.pO.g = dir; },
     phase: () => { if(!state.active || state.pA.phaseCooldown > 0) return; state.pA.phasing = state.pO.phasing = true; state.pA.phaseCooldown = 180; sfx.phase.currentTime = 0; sfx.phase.play(); setTimeout(() => { state.pA.phasing = state.pO.phasing = false; }, 500); }
 };
+window.onkeydown = (e) => { if(e.code === 'Space') Actions.jump(); if(e.code === 'KeyW') Actions.flip(-1); if(e.code === 'KeyS') Actions.flip(1); if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') Actions.phase(); };
+window.ontouchstart = (e) => { if(!state.active) return; const x = e.touches[0].clientX; const w = window.innerWidth; if (x < w * 0.3) Actions.flip(state.pA.g === 1 ? -1 : 1); else if (x > w * 0.7) Actions.jump(); else Actions.phase(); };
 
-window.onkeydown = (e) => {
-    if(e.code === 'Space') Actions.jump();
-    if(e.code === 'KeyW') Actions.flip(-1);
-    if(e.code === 'KeyS') Actions.flip(1);
-    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') Actions.phase();
-};
-
-window.ontouchstart = (e) => {
-    if(!state.active) return;
-    const x = e.touches[0].clientX;
-    const w = window.innerWidth;
-    if (x < w * 0.3) Actions.flip(state.pA.g === 1 ? -1 : 1); // Left 30% flips
-    else if (x > w * 0.7) Actions.jump(); // Right 30% jumps
-    else Actions.phase(); // Center 40% phases
-};
-
+// --- HUB PREVIEWS ---
 const PreviewEngine = {
     frame: 0, obsA: [], obsO: [],
     draw: (ctx, color, obsArr) => {
