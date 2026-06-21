@@ -10,10 +10,10 @@
 </head>
 <body class="crt-master">
 
-    <!-- SPLASH SCREEN -->
+    <!-- SPLASH SCREEN (Only once) -->
     <div id="splash-screen" class="overlay active">
         <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
-        <p class="sys-info">SYSTEM_v10.0 // ENCRYPTED_CONNECTION</p>
+        <p class="sys-info">SYSTEM_v11.0 // ENCRYPTED_CONNECTION</p>
         <button class="nav-btn blue" onclick="System.initTerminal()">[ CONNECT TO MAINFRAME ]</button>
     </div>
 
@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <!-- ROOM 1: THE HUB (Lobby) -->
+    <!-- ROOM 1: THE HUB -->
     <div id="hub-room" class="room">
         <header>
             <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
@@ -59,7 +59,7 @@
         </main>
     </div>
 
-    <!-- ROOM 2: THE VOID (Gameplay) -->
+    <!-- ROOM 2: THE VOID -->
     <div id="void-room" class="room">
         <div id="game-hud">
             <div class="hud-item">DATA: <span id="sync-val">0</span></div>
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <!-- DEATH OVERLAY -->
+    <!-- ROOM 3: DEATH SCREEN -->
     <div id="death-overlay" class="overlay">
         <div class="death-box">
             <h1 class="red-glitch">CONNECTION_LOST</h1>

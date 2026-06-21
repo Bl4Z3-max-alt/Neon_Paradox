@@ -21,7 +21,7 @@ let state = {
     pA: null, pO: null, obsA: [], obsO: [], particles: []
 };
 
-// --- PREVIEW ENGINE (Autoplay Hub Previews) ---
+// --- PREVIEW ENGINE ---
 const PreviewEngine = {
     frame: 0, obsA: [], obsO: [],
     draw: (ctx, color, obsArr) => {
@@ -36,6 +36,7 @@ const PreviewEngine = {
         obsArr.forEach((o, i) => { o.x -= 4; ctx.fillRect(o.x, o.y, o.w, o.h); if(o.x < -20) obsArr.splice(i, 1); });
     },
     loop: () => {
+        if(state.active) return; // Stop hub previews if game is active for performance
         PreviewEngine.frame++;
         PreviewEngine.draw(pCtxA, '#00f0ff', PreviewEngine.obsA);
         PreviewEngine.draw(pCtxO, '#ff8c00', PreviewEngine.obsO);
@@ -48,11 +49,14 @@ const System = {
         sfx.lobby.play().catch(() => {}); 
         System.loadWithBar('HUB'); 
     },
+
     loadWithBar: (target) => {
         const screen = document.getElementById('loading-screen');
         const bar = document.getElementById('progress-bar');
         document.getElementById('splash-screen').classList.remove('active');
+        document.getElementById('death-overlay').style.display = 'none';
         screen.classList.add('active');
+        
         let progress = 0;
         const interval = setInterval(() => {
             progress += Math.random() * 15;
@@ -61,26 +65,40 @@ const System = {
                 clearInterval(interval);
                 setTimeout(() => {
                     screen.classList.remove('active');
-                    if(target === 'HUB') { document.getElementById('hub-room').classList.add('active'); PreviewEngine.loop(); System.loadScores(); }
+                    if(target === 'HUB') { 
+                        document.getElementById('hub-room').classList.add('active'); 
+                        PreviewEngine.loop(); 
+                        System.loadScores(); 
+                    }
                     else if(target === 'VOID') System.boot();
                     else if(target === 'RANKINGS') System.loadScores();
                 }, 400);
             }
-        }, 80);
+        }, 60);
     },
+
     boot: () => {
-        sfx.lobby.pause(); document.getElementById('hub-room').classList.remove('active'); document.getElementById('void-room').classList.add('active');
-        canvasA.width = canvasO.width = window.innerWidth * 0.94; canvasA.height = canvasO.height = window.innerHeight * 0.42;
+        sfx.lobby.pause();
+        document.getElementById('hub-room').classList.remove('active');
+        document.getElementById('void-room').classList.add('active');
+        
+        canvasA.width = canvasO.width = window.innerWidth * 0.94;
+        canvasA.height = canvasO.height = window.innerHeight * 0.42;
+
         state.active = true; state.startTime = Date.now(); state.score = 0; state.speed = 7; state.isSplit = false;
         state.obsA = []; state.obsO = []; state.particles = [];
         state.pA = new Player('#00f0ff'); state.pO = new Player('#ff8c00');
-        canvasO.style.display = 'none'; System.gameLoop();
+        canvasO.style.display = 'none'; 
+        System.gameLoop();
     },
+
     gameLoop: () => { if(!state.active) return; System.update(); System.draw(); requestAnimationFrame(System.gameLoop); },
+
     update: () => {
         state.score += 0.2; document.getElementById('sync-val').innerText = Math.floor(state.score);
         state.speed += 0.0012;
         if(!state.isSplit && Date.now() - state.startTime > 30000) { state.isSplit = true; canvasO.style.display = 'block'; System.shake(); }
+        
         [ {p: state.pA, obs: state.obsA, id: 'A'}, {p: state.pO, obs: state.obsO, id: 'O'} ].forEach(cfg => {
             if(cfg.id === 'O' && !state.isSplit) return;
             cfg.p.update(canvasA.height);
@@ -93,6 +111,7 @@ const System = {
         });
         state.particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.025; if(p.life <= 0) state.particles.splice(i, 1); });
     },
+
     draw: () => {
         [ctxA, ctxO].forEach((ctx, i) => {
             const id = i === 0 ? 'A' : 'O'; if(id === 'O' && !state.isSplit) return;
@@ -106,29 +125,74 @@ const System = {
             else { state.pO.draw(ctx); state.obsO.forEach(o => { ctx.fillStyle = o.glitch ? '#fff':'#ff003c'; ctx.fillRect(o.x, o.y, o.w, o.h); }); }
         });
     },
+
+    die: (x, y) => {
+        state.active = false; System.spawnPart(x, y, '#ff0000', 100); System.shake(); sfx.crash.currentTime = 0; sfx.crash.play();
+        setTimeout(() => { 
+            document.getElementById('death-overlay').style.display = 'flex'; 
+            document.getElementById('final-score').innerText = Math.floor(state.score); 
+        }, 600);
+    },
+
+    submit: async () => {
+        const name = document.getElementById('runner-name').value || "ANON";
+        await fetch('/api/score', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, score: Math.floor(state.score) }) });
+        
+        // --- FIX: Go back to Hub WITHOUT reloading the page ---
+        document.getElementById('void-room').classList.remove('active');
+        document.getElementById('death-overlay').style.display = 'none';
+        sfx.lobby.play().catch(() => {});
+        System.loadWithBar('HUB');
+    },
+
+    // ... Helper functions ...
     spawnPart: (x, y, color, count) => { for(let i=0; i<count; i++) state.particles.push({x, y, color, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 1.0}); },
-    die: (x, y) => { state.active = false; System.spawnPart(x, y, '#ff0000', 100); System.shake(); sfx.crash.currentTime = 0; sfx.crash.play(); setTimeout(() => { document.getElementById('death-overlay').style.display = 'flex'; document.getElementById('final-score').innerText = Math.floor(state.score); }, 600); },
     shake: () => { const v = document.getElementById('void-room'); v.style.animation = 'shake 0.1s 6'; setTimeout(() => v.style.animation = '', 600); },
-    submit: async () => { const name = document.getElementById('runner-name').value || "ANON"; await fetch('/api/score', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, score: Math.floor(state.score) }) }); location.reload(); },
     loadScores: async () => { const r = await fetch('/api/leaderboard'); const data = await r.json(); document.getElementById('score-list').innerHTML = data.map((s, i) => `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${s.name}</span><span>${s.score}</span></div>`).join(''); },
-    showManual: () => alert("SPACE: Jump | W/S: Flip Gravity | SHIFT: Neural Phase")
+    showManual: () => alert("SPACE: Jump | W/S: Gravity Flip | SHIFT: Neural Phase")
 };
 
 class Player {
-    constructor(color) { this.w = 35; this.h = 35; this.x = 120; this.y = 150; this.v = 0; this.g = 1; this.color = color; this.phasing = false; this.phaseCooldown = 0; }
+    constructor(color) { 
+        this.w = 35; this.h = 35; this.x = 120; this.y = 150; this.v = 0; this.g = 1; this.color = color; 
+        this.phasing = false; this.phaseCooldown = 0; 
+        this.angle = 0; // --- ADDED FOR ROTATION ---
+    }
     update(h) {
-        this.v += 0.8 * this.g; this.y += this.v;
+        this.v += 0.8 * this.g;
+        this.y += this.v;
+        
+        // --- ROTATION LOGIC ---
+        // Rotate if in mid-air
+        const onGround = (this.y >= h - this.h || this.y <= 0);
+        if (!onGround) {
+            this.angle += (this.g === 1) ? 0.2 : -0.2; 
+        } else {
+            this.angle = 0; // Reset angle when touching floor/ceiling
+        }
+
         if (this.y > h - this.h) { this.y = h - this.h; this.v = 0; }
         if (this.y < 0) { this.y = 0; this.v = 0; }
         if (this.phaseCooldown > 0) { this.phaseCooldown--; if (this.color === '#00f0ff') document.getElementById('phase-cooldown-bar').style.width = (1 - (this.phaseCooldown / 180)) * 100 + "%"; }
         if (state.active && Math.floor(state.score) % 2 === 0) System.spawnPart(this.x, this.y + this.h/2, this.color, 1);
     }
     draw(ctx) {
-        ctx.save(); ctx.shadowBlur = this.phasing ? 50 : 20; ctx.shadowColor = this.color; ctx.fillStyle = this.phasing ? "#fff" : this.color; ctx.globalAlpha = this.phasing ? 0.4 : 1;
+        ctx.save();
+        ctx.translate(this.x + this.w/2, this.y + this.h/2); // Move to triangle center
+        ctx.rotate(this.angle); // Apply rotation
+        
+        ctx.shadowBlur = this.phasing ? 50 : 20; ctx.shadowColor = this.color; 
+        ctx.fillStyle = this.phasing ? "#fff" : this.color; ctx.globalAlpha = this.phasing ? 0.4 : 1;
+        
         ctx.beginPath();
-        if(this.g === 1) { ctx.moveTo(this.x, this.y + this.h); ctx.lineTo(this.x + this.w/2, this.y); ctx.lineTo(this.x + this.w, this.y + this.h); }
-        else { ctx.moveTo(this.x, this.y); ctx.lineTo(this.x + this.w/2, this.y + this.h); ctx.lineTo(this.x + this.w, this.y); }
-        ctx.fill(); ctx.restore();
+        // Draw centered triangle
+        if(this.g === 1) { 
+            ctx.moveTo(-this.w/2, this.h/2); ctx.lineTo(0, -this.h/2); ctx.lineTo(this.w/2, this.h/2); 
+        } else { 
+            ctx.moveTo(-this.w/2, -this.h/2); ctx.lineTo(0, this.h/2); ctx.lineTo(this.w/2, -this.h/2); 
+        }
+        ctx.fill();
+        ctx.restore();
     }
 }
 
@@ -137,7 +201,11 @@ window.onkeydown = (e) => {
     if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         if(state.pA.phaseCooldown <= 0) { state.pA.phasing = state.pO.phasing = true; state.pA.phaseCooldown = 180; sfx.phase.currentTime = 0; sfx.phase.play(); setTimeout(() => { state.pA.phasing = state.pO.phasing = false; }, 500); }
     }
-    if(e.code === 'Space') { state.pA.v = (state.pA.g === 1) ? -14 : 14; if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14; sfx.jump.currentTime = 0; sfx.jump.play(); }
+    if(e.code === 'Space') { 
+        state.pA.v = (state.pA.g === 1) ? -14 : 14; 
+        if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14; 
+        sfx.jump.currentTime = 0; sfx.jump.play(); 
+    }
     if(e.code === 'KeyW') { state.pA.g = -1; if(state.isSplit) state.pO.g = -1; }
     if(e.code === 'KeyS') { state.pA.g = 1; if(state.isSplit) state.pO.g = 1; }
 };
