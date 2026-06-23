@@ -10,8 +10,8 @@
 </head>
 <body class="crt-master">
 
-    <!-- SPLASH SCREEN -->
-    <div id="splash-screen" class="overlay active">
+    <!-- 1. SPLASH (Only once) -->
+    <div id="room-splash" class="overlay active">
         <div class="glass-panel" style="text-align: center;">
             <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
             <p class="dev-signature">ARCHITECT: SRIPARNO MALIK</p>
@@ -19,49 +19,39 @@
         </div>
     </div>
 
-    <!-- BSOD CRASH -->
-    <div id="blue-screen" class="overlay bsod" style="display: none;">
+    <!-- 2. BSOD CRASH -->
+    <div id="room-bsod" class="overlay bsod" style="display:none;">
         <div class="bsod-content">
             <h1>:(</h1>
-            <p>CRITICAL_PROCESS_DIED: DATA_CORRUPTION</p>
-            <p>The system is attempting a hard reset...</p>
+            <p>CRITICAL_PROCESS_DIED: DECRYPTION_FAILURE</p>
+            <p>The system is attempting a local reboot...</p>
             <p id="bsod-timer">REBOOTING IN 3s...</p>
         </div>
     </div>
 
-    <!-- LOADING OVERLAY -->
-    <div id="loading-screen" class="overlay">
-        <div class="loading-box">
-            <div id="loading-text">ENCRYPTING_CITY_DATA...</div>
-            <div class="progress-bg"><div id="progress-bar"></div></div>
-        </div>
-    </div>
-
-    <!-- ROOM 1: THE HUB (SCROLLABLE) -->
-    <div id="hub-room" class="room">
+    <!-- 3. HUB (Main Menu) -->
+    <div id="room-hub" class="room">
         <header class="hub-header">
             <div class="header-left">
                 <h1 class="glitch-title small">NEON PARADOX</h1>
-                <p class="dev-credit">SRIPARNO MALIK // PRODUCTION_V24</p>
+                <p class="dev-credit">DESIGNED BY SRIPARNO MALIK</p>
             </div>
-            <div class="header-right">
-                <div class="status-tag">SYSTEM: ONLINE</div>
-            </div>
+            <div class="status-tag">SYSTEM: ONLINE</div>
         </header>
 
         <main class="hub-grid">
             <div class="col previews">
-                <div class="monitor blue"><div class="mon-header">AUTO_PILOT_ALPHA</div><canvas id="prevAlpha"></canvas></div>
-                <div class="monitor orange"><div class="mon-header">AUTO_PILOT_OMEGA</div><canvas id="prevOmega"></canvas></div>
+                <div class="monitor blue"><div class="mon-header">ALPHA_PREVIEW</div><canvas id="prevAlpha"></canvas></div>
+                <div class="monitor orange"><div class="mon-header">OMEGA_PREVIEW</div><canvas id="prevOmega"></canvas></div>
             </div>
 
             <div class="col menu-col">
                 <button class="nav-btn blue" onclick="System.loadWithBar('VOID')">START RUN</button>
-                <button class="nav-btn pink" onclick="System.switchRoom('settings-room')">SETTINGS</button>
-                <button class="nav-btn orange" onclick="System.switchRoom('manual-room')">MANUAL</button>
+                <button class="nav-btn pink" onclick="System.switchRoom('room-settings')">SETTINGS</button>
+                <button class="nav-btn orange" onclick="System.switchRoom('room-manual')">MANUAL</button>
             </div>
 
-            <div class="col leaderboard-col">
+            <div class="col">
                 <div class="glass-panel">
                     <h2 class="panel-tag">GLOBAL_LOGS</h2>
                     <div id="score-list"></div>
@@ -70,60 +60,47 @@
         </main>
     </div>
 
-    <!-- ROOM 2: MANUAL -->
-    <div id="manual-room" class="room">
+    <!-- 4. MANUAL -->
+    <div id="room-manual" class="room">
         <div class="glass-panel wide">
             <h1 class="pink">OPERATIONS_MANUAL</h1>
             <div class="manual-grid">
-                <div class="man-card">
-                    <h4>CONTROLS</h4>
-                    <p>LAPTOP: SPACE (Jump) | W/S (Flip) | SHIFT (Phase)</p>
-                    <p>MOBILE: LEFT (Flip) | RIGHT (Jump) | CENTER (Phase)</p>
-                </div>
-                <div class="man-card">
-                    <h4>MECHANICS</h4>
-                    <p>Collect <span class="gold">WHITE_CUBES</span> for Slow-Mo.</p>
-                    <p>Survival > 30s triggers Reality Split.</p>
-                </div>
+                <p>PC: SPACE (Jump) | W/S (Flip) | SHIFT (Phase)</p>
+                <p>MOBILE: L-TAP (Flip) | R-TAP (Jump) | C-TAP (Phase)</p>
+                <p>Collect <span class="gold">WHITE_CUBES</span> for Glitch-Time slow-mo.</p>
             </div>
-            <button class="nav-btn blue" onclick="System.switchRoom('hub-room')">BACK TO HUB</button>
+            <button class="nav-btn blue" onclick="System.switchRoom('room-hub')">BACK</button>
         </div>
     </div>
 
-    <!-- ROOM 3: SETTINGS -->
-    <div id="settings-room" class="room">
+    <!-- 5. SETTINGS -->
+    <div id="room-settings" class="room">
         <div class="glass-panel wide">
-            <h1 class="blue">CORE_CONFIG</h1>
-            <div class="settings-list">
-                <div class="s-row">
-                    <label>REALITY_SPLIT_DELAY</label>
-                    <input type="range" id="split-slider" min="10" max="60" value="30" oninput="System.updateSettings()">
-                    <span id="split-val">30s</span>
-                </div>
-                <div class="s-row">
-                    <label>NEURAL_SKIN</label>
-                    <div class="skin-selector">
-                        <div class="skin-opt active" style="--c: #00f0ff" onclick="System.setSkin('#00f0ff', this)"></div>
-                        <div class="skin-opt" style="--c: #ff003c" onclick="System.setSkin('#ff003c', this)"></div>
-                        <div class="skin-opt" style="--c: #39ff14" onclick="System.setSkin('#39ff14', this)"></div>
-                        <div class="skin-opt" style="--c: #ffd700" onclick="System.setSkin('#ffd700', this)"></div>
-                    </div>
-                </div>
-                <div class="s-row">
-                    <label>AUDIO</label>
-                    <button class="nav-btn small pink" id="mute-btn" onclick="System.toggleMute()">MUTE: OFF</button>
+            <h1>CORE_CONFIG</h1>
+            <div class="setting-row">
+                <label>REALITY_SPLIT (SEC)</label>
+                <input type="range" id="split-slider" min="10" max="60" value="30" oninput="System.updateSettings()">
+                <span id="split-val">30s</span>
+            </div>
+            <div class="setting-row">
+                <label>SKIN_SELECT</label>
+                <div class="skin-selector">
+                    <div class="skin-opt active" style="--c: #00f0ff" onclick="System.setSkin('#00f0ff', this)"></div>
+                    <div class="skin-opt" style="--c: #ff003c" onclick="System.setSkin('#ff003c', this)"></div>
+                    <div class="skin-opt" style="--c: #39ff14" onclick="System.setSkin('#39ff14', this)"></div>
+                    <div class="skin-opt" style="--c: #ffd700" onclick="System.setSkin('#ffd700', this)"></div>
                 </div>
             </div>
-            <button class="nav-btn blue" onclick="System.switchRoom('hub-room')">SAVE & EXIT</button>
+            <button class="nav-btn blue" onclick="System.switchRoom('room-hub')">SAVE</button>
         </div>
     </div>
 
-    <!-- ROOM 4: VOID (GAMEPLAY) -->
-    <div id="void-room" class="room">
+    <!-- 6. VOID (Game) -->
+    <div id="room-void" class="room">
         <div id="glitch-code-container"></div>
         <div id="game-hud">
-            <div class="hud-box">DATA: <span id="sync-val">0</span></div>
-            <div class="hud-box" id="glitch-status" style="display:none; color:var(--gold)">DECRYPT: <span id="glitch-pct">0</span>%</div>
+            <div class="hud-box">SYNC: <span id="sync-val">0</span></div>
+            <div class="hud-box" id="glitch-status" style="display:none; color:var(--gold)">DECRYPTING...</div>
             <div class="hud-box"><div id="phase-cooldown-bar"></div><span id="phase-status">READY</span></div>
         </div>
         <div id="canvas-stack">
@@ -132,13 +109,21 @@
         </div>
     </div>
 
-    <!-- ROOM 5: DEATH -->
+    <!-- 7. DEATH -->
     <div id="death-overlay" class="overlay">
         <div class="glass-panel death-box">
             <h1 class="red-glitch">NEURAL_DEATH</h1>
-            <p>DATA_RECOVERED: <span id="final-score">0</span></p>
+            <p>SCORE: <span id="final-score">0</span></p>
             <input type="text" id="runner-name" placeholder="INIT_ID" maxlength="10">
             <button class="nav-btn pink" onclick="System.submit()">UPLOAD</button>
+        </div>
+    </div>
+
+    <!-- 8. LOADING -->
+    <div id="loading-screen" class="overlay">
+        <div class="loading-box">
+            <div id="loading-text">ENCRYPTING...</div>
+            <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
     </div>
 
