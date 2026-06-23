@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON PARADOX: MASTER EDITION</title>
+    <title>NEON PARADOX | SRIPARNO MALIK</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -13,78 +13,96 @@
     <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="overlay active">
         <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
-        <p class="dev-signature">DEVELOPED BY: SRIPARNO MALIK</p>
-        <p class="sys-info">SYSTEM_v15.0 // MOBILE_READY // ENCRYPTED</p>
-        <button class="nav-btn blue" onclick="System.initTerminal()">[ CONNECT TO MAINFRAME ]</button>
+        <p class="dev-signature">ARCHITECT: SRIPARNO MALIK</p>
+        <button class="nav-btn blue" onclick="System.initTerminal()">[ INITIALIZE NEURAL LINK ]</button>
     </div>
 
-    <!-- LOADING OVERLAY -->
+    <!-- LOADING SCREEN -->
     <div id="loading-screen" class="overlay">
         <div class="loading-container">
-            <div id="loading-text">RECALIBRATING_REALITY...</div>
+            <div id="loading-text">SYNCING_VIRTUAL_CORES...</div>
             <div class="progress-bg"><div id="progress-bar"></div></div>
         </div>
     </div>
 
-    <!-- ROOM 1: THE HUB -->
+    <!-- HUB ROOM -->
     <div id="hub-room" class="room">
         <header>
-            <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
-            <div class="sys-info">ARCHITECT: SRIPARNO MALIK // STATUS: ONLINE</div>
+            <h1 class="glitch-title">NEON PARADOX</h1>
+            <p class="dev-credit">SRIPARNO MALIK // PRODUCTION_V18</p>
         </header>
 
         <main class="hub-grid">
             <div class="col previews">
                 <div class="monitor blue">
-                    <div class="tag">FEED: ALPHA</div>
-                    <canvas id="prevAlpha"></canvas>
+                    <div class="tag">NEURAL_SKIN_SELECT</div>
+                    <div class="skin-selector">
+                        <div class="skin-opt active" style="--c: #00f0ff" onclick="System.setSkin('#00f0ff', this)"></div>
+                        <div class="skin-opt" style="--c: #ff003c" onclick="System.setSkin('#ff003c', this)"></div>
+                        <div class="skin-opt" style="--c: #39ff14" onclick="System.setSkin('#39ff14', this)"></div>
+                        <div class="skin-opt" style="--c: #ffd700" onclick="System.setSkin('#ffd700', this)"></div>
+                    </div>
                 </div>
                 <div class="monitor orange">
-                    <div class="tag">FEED: OMEGA</div>
+                    <div class="tag">REALITY_PREVIEW</div>
                     <canvas id="prevOmega"></canvas>
                 </div>
             </div>
 
             <div class="col menu-col">
-                <button class="nav-btn blue" onclick="System.loadWithBar('VOID')">[START RUN]</button>
-                <button class="nav-btn pink" onclick="System.loadWithBar('RANKINGS')">[RANKINGS]</button>
-                <button class="nav-btn orange" onclick="System.showManual()">[MANUAL]</button>
+                <button class="nav-btn blue" onclick="System.loadWithBar('VOID')">[ START RUN ]</button>
+                <button class="nav-btn pink" onclick="System.switchRoom('manual-room')">[ MANUAL ]</button>
+                <button class="nav-btn orange" onclick="System.loadScores()">[ RANKINGS ]</button>
             </div>
 
-            <div class="col">
+            <div class="col stats-col">
                 <div class="board-panel">
-                    <div class="tag">TOP_OPERATORS</div>
+                    <div class="tag">GLOBAL_RANKINGS</div>
                     <div id="score-list"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- ROOM 2: THE VOID -->
+    <!-- MANUAL ROOM -->
+    <div id="manual-room" class="room">
+        <div class="manual-container">
+            <h2 class="pink">OPERATIONS_MANUAL</h2>
+            <div class="man-grid">
+                <div class="man-card">
+                    <h4>CONTROLS</h4>
+                    <p>LAPTOP: SPACE (Jump) | W/S (Flip) | SHIFT (Phase)</p>
+                    <p>MOBILE: RIGHT (Jump) | LEFT (Flip) | CENTER (Phase)</p>
+                </div>
+                <div class="man-card">
+                    <h4>FEATURES</h4>
+                    <p>REALITY SPLIT: Survival > 30s triggers Dual-Sync.</p>
+                    <p>DATA_BITS: Collect Gold cubes for Slow-Mo + Score.</p>
+                </div>
+            </div>
+            <button class="nav-btn blue" onclick="System.switchRoom('hub-room')">[ RETURN ]</button>
+        </div>
+    </div>
+
+    <!-- VOID ROOM (GAME) -->
     <div id="void-room" class="room">
         <div id="game-hud">
             <div class="hud-item">DATA: <span id="sync-val">0</span></div>
-            <div class="hud-item">
-                <div id="phase-cooldown-wrapper"><div id="phase-cooldown-bar"></div></div>
-                <span id="phase-status">READY</span>
-            </div>
+            <div class="hud-item"><div id="phase-cooldown-bar"></div><span id="phase-status">READY</span></div>
         </div>
-        
         <div id="canvas-stack">
             <canvas id="canvasA"></canvas>
             <canvas id="canvasO"></canvas>
         </div>
-        
-        <div id="mobile-hint">L_TAP: FLIP | R_TAP: JUMP | C_TAP: PHASE</div>
     </div>
 
-    <!-- ROOM 3: DEATH SCREEN -->
+    <!-- DEATH SCREEN -->
     <div id="death-overlay" class="overlay">
         <div class="death-box">
-            <h1 class="red-glitch">CONNECTION_LOST</h1>
-            <p>DATA_RECOVERED: <span id="final-score">0</span></p>
-            <input type="text" id="runner-name" placeholder="INIT_RUNNER_ID" maxlength="10">
-            <button class="nav-btn pink" onclick="System.submit()">UPLOAD_DATA</button>
+            <h1 class="red-glitch">NEURAL_DEATH</h1>
+            <p>RECOVERED_DATA: <span id="final-score">0</span></p>
+            <input type="text" id="runner-name" placeholder="INIT_ID" maxlength="10">
+            <button class="nav-btn pink" onclick="System.submit()">UPLOAD</button>
         </div>
     </div>
 
