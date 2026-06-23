@@ -1,40 +1,54 @@
-:root { --blue: #00f0ff; --pink: #ff00ff; --orange: #ff8c00; --bg: #010103; --gold: #ffd700; }
+:root { --blue: #00f0ff; --pink: #ff00ff; --orange: #ff8c00; --bg: #010103; --gold: #ffd700; --glass: rgba(255,255,255,0.05); }
+
 body, html { margin: 0; padding: 0; background: var(--bg); color: var(--blue); font-family: 'Orbitron', sans-serif; overflow: hidden; height: 100vh; touch-action: none; }
 
+/* CRT FILTER */
 .crt-master::after { content: " "; display: block; position: absolute; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%); z-index: 10000; pointer-events: none; }
 
 .room { display: none; height: 100vh; width: 100vw; flex-direction: column; padding: 30px; box-sizing: border-box; }
-.room.active { display: flex; animation: fadeIn 0.4s ease; }
+.room.active { display: flex; animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* UI PANELS */
+.glass-panel { background: var(--glass); border: 1px solid rgba(0,240,255,0.2); backdrop-filter: blur(10px); padding: 30px; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+.glass-panel.wide { width: 80%; max-width: 800px; margin: auto; }
+
+.monitor { border: 2px solid currentColor; background: #000; margin-bottom: 20px; position: relative; overflow: hidden; }
+.mon-header { font-size: 0.6rem; padding: 5px; background: rgba(0,0,0,0.8); border-bottom: 1px solid currentColor; }
+
+/* BUTTONS */
+.nav-btn { background: rgba(255,255,255,0.03); border: 2px solid; color: white; padding: 18px 30px; font-family: inherit; cursor: pointer; transition: 0.3s; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; }
+.nav-btn.blue { border-color: var(--blue); }
+.nav-btn.pink { border-color: var(--pink); }
+.nav-btn.orange { border-color: var(--orange); }
+.nav-btn:hover { background: #fff; color: #000; box-shadow: 0 0 40px #fff; transform: translateY(-2px); }
+
+/* HUB HEADER */
+.hub-header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,240,255,0.3); padding-bottom: 15px; margin-bottom: 30px; }
+.dev-credit { font-family: 'Share Tech Mono'; color: var(--pink); font-size: 0.8rem; margin: 0; }
+.status-tag { font-family: 'Share Tech Mono'; font-size: 0.8rem; opacity: 0.6; }
+
+/* HUD */
+#game-hud { position: absolute; top: 20px; width: 90%; left: 5%; display: flex; justify-content: space-between; z-index: 100; pointer-events: none; }
+.hud-box { background: rgba(0,0,0,0.7); border: 1px solid var(--blue); padding: 10px 20px; font-size: 1.4rem; backdrop-filter: blur(5px); }
+#phase-cooldown-bar { height: 4px; background: var(--blue); width: 100%; margin-bottom: 5px; }
+
+/* GAMEPLAY */
+#void-room { padding: 0; justify-content: center; align-items: center; background: #000; }
+#canvas-stack { display: flex; flex-direction: column; line-height: 0; border: 4px solid var(--blue); box-shadow: 0 0 60px var(--blue); }
+canvas#canvasA, canvas#canvasO { width: 94vw; height: 43vh; }
+#canvasO { border-top: 2px solid var(--pink); display: none; }
+
+/* BSOD */
+.bsod { background: #0000aa; color: white; display: none; flex-direction: column; justify-content: center; padding: 10%; }
+.bsod-content h1 { font-size: 6rem; margin: 0; }
+
+/* OVERLAYS */
 .overlay { position: absolute; inset: 0; background: var(--bg); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
 .overlay.active { display: flex; }
 
-/* SETTINGS */
-.settings-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
-.setting-row { width: 300px; display: flex; flex-direction: column; gap: 10px; }
-.skin-selector { display: flex; gap: 10px; justify-content: center; }
-.skin-opt { width: 35px; height: 35px; background: var(--c); cursor: pointer; border: 2px solid #333; border-radius: 50%; }
-.skin-opt.active { border-color: #fff; box-shadow: 0 0 15px var(--c); transform: scale(1.1); }
+.skin-selector { display: flex; gap: 15px; }
+.skin-opt { width: 40px; height: 40px; background: var(--c); border-radius: 50%; border: 2px solid #333; cursor: pointer; transition: 0.3s; }
+.skin-opt.active { border-color: #fff; box-shadow: 0 0 20px var(--c); transform: scale(1.1); }
 
-/* CITY BACKGROUND */
-#canvas-stack { display: flex; flex-direction: column; border: 4px solid var(--blue); line-height: 0; width: 95vw; box-shadow: 0 0 40px var(--blue); background: #000; position: relative; }
-canvas#canvasA, canvas#canvasO { width: 100%; height: 42vh; }
-#canvasO { border-top: 1px solid var(--pink); display: none; }
-
-/* GLITCH TIME FX */
-.glitch-active { animation: jitter 0.1s infinite; filter: hue-rotate(10deg) contrast(1.2); }
-#glitch-code-container { position: absolute; inset: 0; pointer-events: none; opacity: 0.2; color: var(--gold); font-family: monospace; z-index: 5; overflow: hidden; }
-.falling-code { position: absolute; animation: fall linear infinite; }
-@keyframes fall { from { transform: translateY(-100%); } to { transform: translateY(100vh); } }
-
-.dev-signature { font-family: 'Share Tech Mono'; color: var(--gold); font-size: 1.2rem; margin: 15px 0; text-shadow: 0 0 10px var(--gold); }
-.dev-credit { color: var(--pink); font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-bottom: 20px; }
-.nav-btn { background: rgba(0,240,255,0.05); border: 2px solid; color: white; padding: 16px; font-family: inherit; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
-.nav-btn:hover { background: white; color: black; box-shadow: 0 0 30px white; }
-
-.board-panel { border: 2px solid var(--pink); padding: 15px; background: rgba(0,0,0,0.8); height: 100%; }
-.monitor { border: 2px solid currentColor; background: #000; margin-bottom: 10px; line-height: 0; }
-canvas#prevAlpha, canvas#prevOmega { width: 100%; height: 100px; }
-
-@media (max-width: 800px) { .hub-grid { grid-template-columns: 1fr; } .previews { display: none; } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 800px) { .hub-grid { grid-template-columns: 1fr; overflow-y: auto; } .previews { display: none; } .hud-box { font-size: 1rem; } }

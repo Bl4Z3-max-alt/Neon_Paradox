@@ -20,15 +20,11 @@ let state = {
 class Shard {
     constructor(x, y, color) {
         this.x = x; this.y = y; this.color = color;
-        this.size = Math.random()*8+2;
-        this.vx = (Math.random()-0.5)*15; this.vy = (Math.random()-0.5)*15;
+        this.size = Math.random()*8+2; this.vx = (Math.random()-0.5)*15; this.vy = (Math.random()-0.5)*15;
         this.angle = Math.random()*Math.PI*2; this.vr = (Math.random()-0.5)*0.4; this.life = 1.0;
     }
     update(dt) { this.x += this.vx*dt; this.y += this.vy*dt; this.vy += 0.2*dt; this.angle += this.vr*dt; this.life -= 0.02*dt; }
-    draw(ctx) {
-        ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.globalAlpha = Math.max(0, this.life);
-        ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(0, -this.size/2); ctx.lineTo(this.size/2, this.size/2); ctx.lineTo(-this.size/2, this.size/2); ctx.fill(); ctx.restore();
-    }
+    draw(ctx) { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color; ctx.beginPath(); ctx.moveTo(0, -this.size/2); ctx.lineTo(this.size/2, this.size/2); ctx.lineTo(-this.size/2, this.size/2); ctx.fill(); ctx.restore(); }
 }
 
 class Player {
@@ -38,7 +34,7 @@ class Player {
         if (this.y >= h - this.h || this.y <= 0) { this.angle = 0; this.v = 0; this.y = (this.y <= 0) ? 0 : h - this.h; }
         else { this.angle += (this.g === 1 ? 0.2 : -0.2) * dt; }
         if (this.phaseCooldown > 0) { this.phaseCooldown -= 1 * dt; if (this.color === state.selectedColor) document.getElementById('phase-cooldown-bar').style.width = Math.max(0, (1 - (this.phaseCooldown/180))*100) + "%"; }
-        if (state.active && Math.floor(state.score) % 3 === 0) System.spawnPart(this.x, this.y + this.h/2, this.color, 1);
+        if (state.active && Math.floor(state.score) % 4 === 0) System.spawnPart(this.x, this.y + this.h/2, this.color, 1);
     }
     draw(ctx) {
         ctx.save(); ctx.translate(this.x + this.w/2, this.y + this.h/2); ctx.rotate(this.angle);
@@ -58,57 +54,50 @@ const System = {
     updateSettings: () => { state.splitTime = document.getElementById('split-slider').value; document.getElementById('split-val').innerText = state.splitTime + "s"; },
     
     loadWithBar: (target) => {
-        const screen = document.getElementById('loading-screen');
-        const bar = document.getElementById('progress-bar');
+        const screen = document.getElementById('loading-screen'), bar = document.getElementById('progress-bar');
         document.getElementById('splash-screen').classList.remove('active');
         document.getElementById('death-overlay').style.display = 'none';
         screen.classList.add('active');
         let progress = 0;
         const interval = setInterval(() => {
-            progress += Math.random() * 15; bar.style.width = Math.min(progress, 100) + "%";
-            if(progress >= 100) { clearInterval(interval); setTimeout(() => { screen.classList.remove('active'); if(target === 'HUB') { System.switchRoom('hub-room'); PreviewEngine.loop(); System.loadScores(); } else if(target === 'VOID') System.boot(); }, 400); }
-        }, 60);
+            progress += Math.random() * 10; bar.style.width = Math.min(progress, 100) + "%";
+            if(progress >= 100) { clearInterval(interval); setTimeout(() => { screen.classList.remove('active'); if(target === 'HUB') { System.switchRoom('hub-room'); PreviewEngine.loop(); System.loadScores(); } else if(target === 'VOID') System.boot(); }, 300); }
+        }, 50);
     },
 
     boot: () => {
         sfx.lobby.pause(); System.switchRoom('void-room');
-        canvasA.width = canvasO.width = window.innerWidth * 0.96; canvasA.height = canvasO.height = window.innerHeight * 0.42;
+        canvasA.width = canvasO.width = window.innerWidth * 0.95; canvasA.height = canvasO.height = window.innerHeight * 0.43;
         state.active = true; state.startTime = Date.now(); state.score = 0; state.speed = 7; state.isSplit = false; 
         state.glitchActive = false; state.glitchProgress = 0;
         state.obsA = []; state.obsO = []; state.particles = []; state.shards = []; state.pickups = [];
         state.pA = new Player(state.selectedColor); state.pO = new Player('#ff8c00');
-        state.buildings = []; for(let i=0; i<10; i++) state.buildings.push({x: i*250, w: 100+Math.random()*150, h: 100+Math.random()*200});
-        canvasO.style.display = 'none'; state.lastTime = performance.now(); System.gameLoop(performance.now());
-    },
-
-    spawnCode: () => {
-        const container = document.getElementById('glitch-code-container');
-        const code = document.createElement('div');
-        code.className = 'falling-code'; code.style.left = Math.random()*100 + "%";
-        code.innerText = Math.random().toString(16).substr(2, 8).toUpperCase();
-        container.appendChild(code); setTimeout(() => code.remove(), 2000);
+        state.buildings = []; for(let i=0; i<12; i++) state.buildings.push({x: i*250, w: 100+Math.random()*150, h: 80+Math.random()*220});
+        state.lastTime = performance.now(); System.gameLoop(performance.now());
     },
 
     update: (dt) => {
         if(!state.active) { state.shards.forEach((s, i) => { s.update(dt); if(s.life <= 0) state.shards.splice(i, 1); }); return; }
         
-        let currentDt = state.glitchActive ? dt * 0.3 : dt;
+        let currentDt = state.glitchActive ? dt * 0.25 : dt;
         if(state.glitchActive) {
-            state.glitchProgress += 0.4 * dt;
+            state.glitchProgress += 0.3 * dt;
             document.getElementById('glitch-pct').innerText = Math.floor(state.glitchProgress);
-            System.spawnCode();
             if(state.glitchProgress >= 100) { state.glitchActive = false; state.score += 500; document.body.classList.remove('glitch-active'); document.getElementById('glitch-status').style.display = 'none'; }
         }
 
-        state.score += 0.15 * currentDt; state.speed = Math.min(7 + (state.score / 250), 18);
+        // --- SCORE FIXED: Much slower progression ---
+        state.score += 0.08 * currentDt; 
+        state.speed = Math.min(7 + (state.score / 150), 16);
         document.getElementById('sync-val').innerText = Math.floor(state.score);
+
         if(!state.isSplit && Date.now() - state.startTime > state.splitTime * 1000) { state.isSplit = true; canvasO.style.display = 'block'; System.shake(); }
 
         [ {p: state.pA, obs: state.obsA, id: 'A'}, {p: state.pO, obs: state.obsO, id: 'O'} ].forEach(cfg => {
             if(cfg.id === 'O' && !state.isSplit) return;
             cfg.p.update(canvasA.height, currentDt);
             if(Math.random() < 0.001 * currentDt) state.pickups.push({x: canvasA.width + 50, y: Math.random()*(canvasA.height-30), w: 30, h:30, id: cfg.id});
-            if(Math.random() < 0.02 * currentDt) cfg.obs.push({x: canvasA.width + 100, y: Math.random() > 0.5 ? 0 : canvasA.height - 70, w: 30, h: 70});
+            if(Math.random() < 0.018 * currentDt) cfg.obs.push({x: canvasA.width + 100, y: Math.random() > 0.5 ? 0 : canvasA.height - 70, w: 30, h: 70});
             
             cfg.obs.forEach((o, i) => {
                 o.x -= state.speed * currentDt;
@@ -136,14 +125,14 @@ const System = {
         [ctxA, ctxO].forEach((ctx, i) => {
             const id = i === 0 ? 'A' : 'O'; if(id === 'O' && !state.isSplit) return;
             ctx.clearRect(0, 0, canvasA.width, canvasA.height);
-            // Draw City Silhouettes
+            // City Background
             ctx.fillStyle = '#050508'; ctx.globalAlpha = 0.5;
             state.buildings.forEach(b => {
-                let bx = (b.x - (state.score * 2)) % (canvasA.width + 400);
+                let bx = (b.x - (state.score * 20)) % (canvasA.width + 400);
                 ctx.fillRect(bx - 200, canvasA.height - b.h, b.w, b.h);
             });
             ctx.strokeStyle = (id === 'A') ? state.selectedColor : '#ff8c00'; ctx.globalAlpha = 0.1;
-            for(let x = -(state.score*10%100); x < canvasA.width; x += 100) ctx.strokeRect(x, 0, 100, canvasA.height);
+            for(let x = -(state.score*50%100); x < canvasA.width; x += 100) ctx.strokeRect(x, 0, 100, canvasA.height);
             ctx.globalAlpha = 1;
             state.particles.forEach(p => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 4, 4); });
             state.shards.forEach(s => s.draw(ctx));
@@ -158,7 +147,7 @@ const System = {
 
     blueScreen: () => {
         state.active = false; document.getElementById('blue-screen').style.display = 'flex';
-        let count = 3; let t = setInterval(() => { count--; document.getElementById('bsoc-timer').innerText = `REBOOTING IN ${count}s...`; if(count<=0){ clearInterval(t); location.reload(); }}, 1000);
+        let count = 3; let t = setInterval(() => { count--; document.getElementById('bsod-timer').innerText = `REBOOTING IN ${count}s...`; if(count<=0){ clearInterval(t); location.reload(); }}, 1000);
     },
 
     die: (p) => {
@@ -171,11 +160,11 @@ const System = {
     submit: async () => { const name = document.getElementById('runner-name').value || "ANON"; await fetch('/api/score', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ name, score: Math.floor(state.score) }) }); System.switchRoom('hub-room'); document.getElementById('death-overlay').style.display = 'none'; sfx.lobby.play().catch(() => {}); System.loadWithBar('HUB'); },
     spawnPart: (x, y, color, count) => { for(let i=0; i<count; i++) state.particles.push({x, y, color, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 1.0}); },
     shake: () => { const v = document.getElementById('void-room'); v.style.animation = 'shake 0.1s 8'; setTimeout(() => v.style.animation = '', 800); },
-    loadScores: async () => { const r = await fetch('/api/leaderboard'); const data = await r.json(); document.getElementById('score-list').innerHTML = data.map((s, i) => `<div class="score-row" style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #222;"><span>${i+1}. ${s.name}</span><span>${s.score}</span></div>`).join(''); }
+    loadScores: async () => { const r = await fetch('/api/leaderboard'); const data = await r.json(); document.getElementById('score-list').innerHTML = data.map((s, i) => `<div class="score-row" style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #222;"><span>${i+1}. ${s.name}</span><span>${s.score}</span></div>`).join(''); }
 };
 
 const Actions = {
-    jump: () => { if(!state.active) return; state.pA.v = (state.pA.g === 1) ? -14 : 14; if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14; if(!state.muted) { sfx.jump.currentTime = 0; sfx.jump.play(); } },
+    jump: () => { if(!state.active) return; state.pA.v = (state.pA.g === 1) ? -14 : 14; if(state.isSplit) state.pO.v = (state.pO.g === 1) ? -14 : 14; if(!state.muted) sfx.jump.play(); },
     flip: (dir) => { if(!state.active) return; state.pA.g = dir; if(state.isSplit) state.pO.g = dir; },
     phase: () => { if(!state.active || state.pA.phaseCooldown > 0) return; state.pA.phasing = state.pO.phasing = true; state.pA.phaseCooldown = 180; setTimeout(() => { state.pA.phasing = state.pO.phasing = false; }, 500); }
 };
