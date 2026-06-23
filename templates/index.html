@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON PARADOX | APEX EDITION</title>
+    <title>NEON PARADOX | SRIPARNO MALIK</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body class="crt-master">
 
-    <!-- SPLASH -->
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen" class="overlay active">
         <div class="ui-panel">
             <h1 class="glitch-title" data-text="NEON PARADOX">NEON PARADOX</h1>
@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    <!-- BSOD -->
+    <!-- BSOD CRASH -->
     <div id="blue-screen" class="overlay bsod">
         <div class="bsod-content">
             <h1>:(</h1>
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <!-- LOADING -->
+    <!-- LOADING OVERLAY -->
     <div id="loading-screen" class="overlay">
         <div class="loading-box">
             <div id="loading-text">ENCRYPTING_CITY_DATA...</div>
@@ -38,7 +38,7 @@
         </div>
     </div>
 
-    <!-- HUB -->
+    <!-- HUB ROOM (SCROLLABLE) -->
     <div id="hub-room" class="room">
         <header class="hub-header">
             <div class="header-left">
@@ -46,11 +46,12 @@
                 <p class="dev-credit">DESIGNED BY SRIPARNO MALIK</p>
             </div>
             <div class="header-right">
-                <div class="status-tag">V22.5 // SYSTEM: ONLINE</div>
+                <div class="status-tag">V22.6 // SYSTEM: ONLINE</div>
             </div>
         </header>
 
         <main class="hub-grid">
+            <!-- Previews -->
             <div class="col previews">
                 <div class="monitor blue">
                     <div class="mon-header">AUTO_PILOT_ALPHA</div>
@@ -62,25 +63,26 @@
                 </div>
             </div>
 
+            <!-- Menu Buttons -->
             <div class="col menu-col">
                 <button class="nav-btn blue" onclick="System.loadWithBar('VOID')">START RUN</button>
                 <button class="nav-btn pink" onclick="System.switchRoom('settings-room')">SETTINGS</button>
                 <button class="nav-btn orange" onclick="System.switchRoom('manual-room')">MANUAL</button>
             </div>
 
+            <!-- Leaderboard (Scroll to see) -->
             <div class="col leaderboard-col">
                 <div class="glass-panel">
-                    <h3 class="panel-tag">GLOBAL_LOGS</h3>
-                    <!-- SCROLLABLE AREA -->
-                    <div id="score-list-container">
-                        <div id="score-list"></div>
+                    <h2 class="panel-tag">GLOBAL_LOGS</h2>
+                    <div id="score-list">
+                        <!-- Scores load here -->
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MANUAL -->
+    <!-- MANUAL ROOM -->
     <div id="manual-room" class="room">
         <div class="glass-panel wide">
             <h1 class="pink">OPERATIONS_MANUAL</h1>
@@ -92,7 +94,7 @@
                 </div>
                 <div class="man-card">
                     <h4>MECHANICS</h4>
-                    <p>Collect <span class="gold">WHITE_CUBES</span> for Slow-Mo.</p>
+                    <p>Collect <span class="gold">WHITE_CUBES</span> for Slow-Mo Decryption.</p>
                     <p>Survival > 30s triggers Reality Split.</p>
                 </div>
             </div>
@@ -100,7 +102,7 @@
         </div>
     </div>
 
-    <!-- SETTINGS -->
+    <!-- SETTINGS ROOM -->
     <div id="settings-room" class="room">
         <div class="glass-panel wide">
             <h1 class="blue">CORE_CONFIGURATION</h1>
@@ -111,7 +113,7 @@
                     <span id="split-val">30s</span>
                 </div>
                 <div class="s-row">
-                    <label>NEURAL_SKIN_SELECTION</label>
+                    <label>NEURAL_SKIN_SELECT</label>
                     <div class="skin-selector">
                         <div class="skin-opt active" style="--c: #00f0ff" onclick="System.setSkin('#00f0ff', this)"></div>
                         <div class="skin-opt" style="--c: #ff003c" onclick="System.setSkin('#ff003c', this)"></div>
@@ -128,12 +130,12 @@
         </div>
     </div>
 
-    <!-- GAMEPLAY -->
+    <!-- GAMEPLAY VOID -->
     <div id="void-room" class="room">
         <div id="glitch-code-container"></div>
         <div id="game-hud">
             <div class="hud-box">SYNC: <span id="sync-val">0</span></div>
-            <div class="hud-box" id="glitch-status" style="display:none;">DECRYPT: <span id="glitch-pct">0</span>%</div>
+            <div class="hud-box" id="glitch-status" style="display:none; color:var(--gold)">DECRYPT: <span id="glitch-pct">0</span>%</div>
             <div class="hud-box"><div id="phase-cooldown-bar"></div><span id="phase-status">READY</span></div>
         </div>
         <div id="canvas-stack">
@@ -142,7 +144,7 @@
         </div>
     </div>
 
-    <!-- DEATH -->
+    <!-- DEATH OVERLAY -->
     <div id="death-overlay" class="overlay">
         <div class="glass-panel death-box">
             <h1 class="red-glitch">NEURAL_DEATH</h1>
